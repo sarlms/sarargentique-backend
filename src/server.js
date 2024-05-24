@@ -23,7 +23,7 @@ const io = socketIo(server, {
 
 // Configuration CORS pour Express
 app.use(cors({
-  origin: 'http://localhost:3001',
+  origin: ['http://localhost:3001', 'https://sarargentique-backend.cluster-ig3.igpolytech.fr'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true
 }));
