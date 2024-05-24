@@ -1,9 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/usersControllers');
+const authMiddleware = require('../middleware/auth');
 
-// Route pour créer un nouvel utilisateur
-router.post('/', userController.createUser);
+// Route pour créer un nouvel utilisateur (inscription)
+router.post('/signup', userController.createUser);
+
+// Route pour la connexion d'un utilisateur
+router.post('/login', userController.loginUser);
 
 // Route pour récupérer tous les utilisateurs
 router.get('/', userController.getAllUsers);
@@ -17,9 +21,7 @@ router.put('/:id', userController.updateUser);
 // Route pour supprimer un utilisateur
 router.delete('/:id', userController.deleteUser);
 
-// Endpoint pour créer un nouvel utilisateur
-router.post('/signup', userController.createUser);
+router.get('/me', authMiddleware, userController.getCurrentUser);
 
-router.post('/login', userController.loginUser);
 
 module.exports = router;

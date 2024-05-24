@@ -4,7 +4,7 @@ const cors = require('cors');
 require('dotenv').config();
 const http = require('http');
 const socketIo = require('socket.io');
-
+const cookieParser = require('cookie-parser');
 const userRoutes = require('./routes/usersRoutes');
 const photoRoutes = require('./routes/photosRoutes');
 const pelliculeRoutes = require('./routes/pelliculesRoutes');
@@ -29,13 +29,16 @@ app.use(cors({
 }));
 
 app.use(express.json());
+app.use(cookieParser()); // Ajout du middleware cookie-parser
 
+// Routes
 app.use('/api/user', userRoutes);
 app.use('/api/photo', photoRoutes);
 app.use('/api/pellicule', pelliculeRoutes);
 app.use('/api/commentaire', commentaireRoutes);
 app.use('/api/like', likeRoutes);
 
+// Gestion des connexions Socket.io
 io.on('connection', (socket) => {
   console.log('New client connected');
 
@@ -68,6 +71,7 @@ io.on('connection', (socket) => {
   });
 });
 
+// Connexion à la base de données MongoDB
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {
     server.listen(process.env.PORT, () => {

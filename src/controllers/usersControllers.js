@@ -1,10 +1,15 @@
 const User = require('../models/users');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const dotenv = require('dotenv');
+
+dotenv.config();
+
+const secretKey = process.env.JWT_SECRET_KEY || 'cle-secrete';
 
 exports.createUser = async (req, res) => {
   try {
-    const { email, pseudo, password, nom, prenom} = req.body;
+    const { email, pseudo, password, nom, prenom } = req.body;
 
     // Vérifier si l'utilisateur existe déjà
     const existingUser = await User.findOne({ email });
@@ -13,16 +18,42 @@ exports.createUser = async (req, res) => {
     }
 
     // Hacher le mot de passe
-    const hashedPassword = await bcrypt.hash(password, 10); // 10 est le coût du hachage
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     // Créer un nouvel utilisateur avec le mot de passe haché
-    const newUser = new User({ email, pseudo, password: hashedPassword, nom, prenom});
+    const newUser = new User({ email, pseudo, password: hashedPassword, nom, prenom });
     await newUser.save();
 
-    res.status(201).json({ message: 'Utilisateur créé avec succès.' });
+    // Générer le token JWT
+    const token = jwt.sign({ userId: newUser._id, role: newUser.role }, secretKey, { expiresIn: '1h' });
+
+    res.status(201).json({ token });
   } catch (error) {
     console.error('Erreur lors de la création de l\'utilisateur:', error);
     res.status(500).json({ message: 'Erreur lors de la création de l\'utilisateur.' });
+  }
+};
+
+exports.loginUser = async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(401).json({ message: 'Invalid email or password' });
+    }
+
+    const passwordMatch = await bcrypt.compare(password, user.password);
+    if (!passwordMatch) {
+      return res.status(401).json({ message: 'Invalid email or password' });
+    }
+
+    const token = jwt.sign({ userId: user._id, role: user.role }, secretKey, { expiresIn: '1h' });
+
+    res.status(200).json({ token });
+  } catch (error) {
+    console.error('Error during login:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
 
@@ -74,41 +105,19 @@ exports.deleteUser = async (req, res) => {
     }
     res.status(200).json({ success: true, data: {} });
   } catch (err) {
+    res.status (500).json({ success: false, error: err.message });
+  }
+};
+
+exports.getCurrentUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.userId).select('-password');
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+    res.status(200).json({ success: true, data: user });
+  } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
 };
-
-
-
-exports.loginUser = async (req, res) => {
-  const { email, password } = req.body;
-
-  try {
-    // Recherche de l'utilisateur dans la base de données
-    const user = await User.findOne({ email });
-
-    if (!user) {
-      return res.status(401).json({ message: 'Invalid email or password' });
-    }
-
-    // Vérification du mot de passe
-    const passwordMatch = await bcrypt.compare(password, user.password);
-    if (!passwordMatch) {
-      return res.status(401).json({ message: 'Invalid email or password' });
-    }
-
-    // Génération du token JWT avec les informations utilisateur
-    const token = jwt.sign({ userId: user._id, firstName: user.firstName, role: user.role }, 'secret_key', { expiresIn: '1h' });
-
-    // Création d'un cookie HTTPOnly pour stocker l'email
-    res.cookie('email', email, { httpOnly: true });
-
-    // Envoi du token JWT dans la réponse
-    res.status(200).json({ token });
-  } catch (error) {
-    console.error('Error during login:', error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-};
-
 
