@@ -4,7 +4,10 @@ const Photo = require('../models/photos');
 exports.createPhoto = async (req, res) => {
     try {
         // Créer une nouvelle instance de photo avec les données du corps de la requête
-        const nouvellePhoto = new Photo(req.body);
+        const nouvellePhoto = new Photo({
+            ...req.body,
+            createdAt: new Date() // Assigner explicitement la date actuelle
+        });
         
         // Sauvegarder la nouvelle photo dans la base de données
         await nouvellePhoto.save();
@@ -84,6 +87,17 @@ exports.deletePhoto = async (req, res) => {
         res.status(200).json({ message: "Photo deleted successfully" });
     } catch (error) {
         // En cas d'erreur, répondre avec un message d'erreur et un code d'erreur appropriés
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// Contrôleur pour récupérer les photos par pelliculeId
+exports.getPhotosByPelliculeId = async (req, res) => {
+    try {
+        const photos = await Photo.find({ pelliculeId: req.params.pelliculeId });
+        console.log('Photos fetched from DB:', photos); // Ajoutez cette ligne
+        res.status(200).json(photos);
+    } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };

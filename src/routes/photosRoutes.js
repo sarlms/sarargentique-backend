@@ -17,4 +17,7 @@ router.put('/:id', photoController.updatePhoto);
 // Route pour supprimer une photo par son identifiant
 router.delete('/:id', photoController.deletePhoto);
 
+// Route pour récupérer les photos par pelliculeId
+router.get('/pellicule/:pelliculeId', photoController.getPhotosByPelliculeId);
+
 module.exports = router;
