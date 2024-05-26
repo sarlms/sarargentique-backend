@@ -1,23 +1,26 @@
 const jwt = require('jsonwebtoken');
-const dotenv = require('dotenv');
 
-dotenv.config();
-const secretKey = process.env.JWT_SECRET_KEY || 'cle-secrete';
+const authMiddleware = async (req, res, next) => {
 
-const authMiddleware = (req, res, next) => {
-  const token = req.header('Authorization')?.split(' ')[1];
+    // verify authentication
+    const { authorization } = req.headers
 
-  if (!token) {
-    return res.status(401).json({ message: 'No token, authorization denied' });
-  }
+    if (!authorization) {
+        return res.status(401).json({error: 'Authorization token required'})
+    }
 
-  try {
-    const decoded = jwt.verify(token, secretKey);
-    req.user = decoded;
-    next();
-  } catch (error) {
-    res.status(401).json({ message: 'Token is not valid' });
-  }
-};
+    const token = authorization.split(' ')[1]
 
-module.exports = authMiddleware;
+    try {
+        const {_id} = jwt.verify(token, process.env.JWT_SECRET_KEY);
+
+        req.user = await User.findOne({ _id }).select('_id');
+        next();
+
+    } catch (error) { 
+        console.log(error)
+        res.status(401).json({error: 'Request is not authorized'})
+    }
+}
+
+module.exports = authMiddleware

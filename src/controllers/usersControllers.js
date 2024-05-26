@@ -1,123 +1,101 @@
 const User = require('../models/users');
-const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const dotenv = require('dotenv');
 
-dotenv.config();
-
-const secretKey = process.env.JWT_SECRET_KEY || 'cle-secrete';
-
-exports.createUser = async (req, res) => {
-  try {
-    const { email, pseudo, password, nom, prenom } = req.body;
-
-    // Vérifier si l'utilisateur existe déjà
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ message: 'Cet utilisateur existe déjà.' });
-    }
-
-    // Hacher le mot de passe
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Créer un nouvel utilisateur avec le mot de passe haché
-    const newUser = new User({ email, pseudo, password: hashedPassword, nom, prenom });
-    await newUser.save();
-
-    // Générer le token JWT
-    const token = jwt.sign({ userId: newUser._id, role: newUser.role }, secretKey, { expiresIn: '1h' });
-
-    res.status(201).json({ token });
-  } catch (error) {
-    console.error('Erreur lors de la création de l\'utilisateur:', error);
-    res.status(500).json({ message: 'Erreur lors de la création de l\'utilisateur.' });
-  }
+// fonction pour créer un token
+const createToken = (_id) => {
+  return jwt.sign({ _id }, process.env.SECRET, { expiresIn: '3d' });
 };
 
-exports.loginUser = async (req, res) => {
-  const { email, password } = req.body;
-
-  try {
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(401).json({ message: 'Invalid email or password' });
-    }
-
-    const passwordMatch = await bcrypt.compare(password, user.password);
-    if (!passwordMatch) {
-      return res.status(401).json({ message: 'Invalid email or password' });
-    }
-
-    const token = jwt.sign({ userId: user._id, role: user.role }, secretKey, { expiresIn: '1h' });
-
-    res.status(200).json({ token });
-  } catch (error) {
-    console.error('Error during login:', error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-};
-
-// Méthode pour récupérer tous les utilisateurs
+// Controller pour obtenir tous les utilisateurs
 exports.getAllUsers = async (req, res) => {
   try {
     const users = await User.find();
-    res.status(200).json({ success: true, data: users });
-  } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    res.status(200).json(users);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };
 
-// Méthode pour récupérer un utilisateur par son ID
-exports.getUserById = async (req, res) => {
+// Controller pour obtenir un utilisateur spécifique
+exports.getUser = async (req, res) => {
+  const { id } = req.params;  // Change from userId to id
+  console.log(`Getting user profile for ID: ${id}`);
+
   try {
-    const user = await User.findById(req.params.id);
+    const user = await User.findById(id);
     if (!user) {
-      return res.status(404).json({ success: false, error: 'User not found' });
+      return res.status(404).json({ error: 'User not found' });
     }
-    res.status(200).json({ success: true, data: user });
-  } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+
+    // Retournez les données du profil utilisateur
+    res.status(200).json({
+      pseudo: user.pseudo,
+      email: user.email,
+      prenom: user.prenom,
+      nom: user.nom,
+    });
+  } catch (error) {
+    console.error('Server error:', error);
+    res.status(500).json({ error: 'Server error' });
   }
 };
 
-// Méthode pour mettre à jour les informations d'un utilisateur
+// Controller pour mettre à jour un utilisateur existant
 exports.updateUser = async (req, res) => {
   try {
-    const user = await User.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
-    });
+    const user = await User.findByIdAndUpdate(req.params.id, req.body, { new: true });
     if (!user) {
-      return res.status(404).json({ success: false, error: 'User not found' });
+      return res.status(404).json({ message: 'User not found' });
     }
-    res.status(200).json({ success: true, data: user });
-  } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    res.json(user);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
   }
 };
 
-// Méthode pour supprimer un utilisateur
+// Controller pour supprimer un utilisateur existant
 exports.deleteUser = async (req, res) => {
   try {
     const user = await User.findByIdAndDelete(req.params.id);
     if (!user) {
-      return res.status(404).json({ success: false, error: 'User not found' });
+      return res.status(404).json({ message: 'User not found' });
     }
-    res.status(200).json({ success: true, data: {} });
-  } catch (err) {
-    res.status (500).json({ success: false, error: err.message });
+    res.json({ message: 'User deleted' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };
 
-exports.getCurrentUser = async (req, res) => {
+// login user
+exports.loginUser = async (req, res) => {
+  const { email, password } = req.body;
+
   try {
-    const user = await User.findById(req.user.userId).select('-password');
-    if (!user) {
-      return res.status(404).json({ success: false, error: 'User not found' });
-    }
-    res.status(200).json({ success: true, data: user });
-  } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    const user = await User.login(email, password);
+    // créer un token
+    const token = createToken(user._id);
+
+    res.status(200).json({ email, _id: user._id, token });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
   }
 };
+
+// signup user
+exports.signupUser = async (req, res) => {
+  const { pseudo, email, password, nom, prenom } = req.body;
+
+  try {
+    const user = await User.signup(pseudo, email, password, nom, prenom);
+
+    // créer le token
+    const token = createToken(user._id);
+
+    res.status(200).json({ email, _id: user._id, token });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+
 
