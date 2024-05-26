@@ -87,3 +87,14 @@ exports.deleteCommentaire = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+// Contrôleur pour récupérer les photos par pelliculeId
+exports.getCommentairesByPhotoId = async (req, res) => {
+    try {
+        const commentaires = await Commentaire.find({ photoId: req.params.photoId });
+        console.log('Photos fetched from DB:', commentaires); // Ajoutez cette ligne
+        res.status(200).json(commentaires);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};

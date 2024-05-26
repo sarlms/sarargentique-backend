@@ -1,6 +1,11 @@
 const Photo = require('../models/photos');
+<<<<<<< HEAD
 const Like = require('../models/likes'); // Assurez-vous d'importer le modèle Like
 const Commentaire = require('../models/commentaires'); // Assurez-vous d'importer le modèle Commentaire
+=======
+const Like = require('../models/likes');
+const Commentaire = require('../models/commentaires');
+>>>>>>> aea8a217ed9d14697ec6f1b6aed657f2341e5c60
 
 // Contrôleur pour la création d'une nouvelle photo
 exports.createPhoto = async (req, res) => {
@@ -34,9 +39,13 @@ exports.getAllPhotos = async (req, res) => {
     }
 };
 
-// Contrôleur pour la récupération d'une photo par son identifiant
-exports.getPhotoById = async (req, res) => {
+// Contrôleur pour récupérer les détails d'une photo par son identifiant
+exports.getPhotoDetailsById = async (req, res) => {
     try {
+<<<<<<< HEAD
+=======
+        // Récupérer les détails de la photo avec l'identifiant spécifié depuis la base de données
+>>>>>>> aea8a217ed9d14697ec6f1b6aed657f2341e5c60
         const photo = await Photo.findById(req.params.id);
         
         if (!photo) {
@@ -46,6 +55,10 @@ exports.getPhotoById = async (req, res) => {
         photo.likesCount = await Like.countDocuments({ photoId: photo._id });
         photo.commentsCount = await Commentaire.countDocuments({ photoId: photo._id });
         
+<<<<<<< HEAD
+=======
+        // Répondre avec les détails de la photo récupérée
+>>>>>>> aea8a217ed9d14697ec6f1b6aed657f2341e5c60
         res.status(200).json(photo);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -89,8 +102,15 @@ exports.getPhotosByPellicule = async (req, res) => {
         const photos = await Photo.find({ pelliculeId }).lean();
 
         for (const photo of photos) {
+<<<<<<< HEAD
             photo.likesCount = await Like.countDocuments({ photoId: photo._id });
             photo.commentsCount = await Commentaire.countDocuments({ photoId: photo._id });
+=======
+            const likesCount = await Like.countDocuments({ photoId: photo._id });
+            const commentsCount = await Commentaire.countDocuments({ photoId: photo._id });
+            photo.likesCount = likesCount;
+            photo.commentsCount = commentsCount;
+>>>>>>> aea8a217ed9d14697ec6f1b6aed657f2341e5c60
         }
 
         res.status(200).json(photos);

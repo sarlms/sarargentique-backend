@@ -22,5 +22,9 @@ router.delete('/:id', userController.deleteUser);
 
 
 
+<<<<<<< HEAD
 module.exports = router;
   
+=======
+module.exports = router;
+>>>>>>> aea8a217ed9d14697ec6f1b6aed657f2341e5c60

@@ -17,4 +17,19 @@ router.put('/:id', commentairesController.updateCommentaire);
 // Route pour la suppression d'un commentaire
 router.delete('/:id', commentairesController.deleteCommentaire);
 
+// Route pour récupérer les photos par pelliculeId
+router.get('/photo/:photoId', commentairesController.getCommentairesByPhotoId);
+
+// Route pour récupérer les likes d'une photo spécifique
+router.get('/photo/:photoId/commentaires', async (req, res) => {
+    try {
+      const commentaires = await Like.find({ photoId: req.params.photoId }).populate('userId', 'pseudo');
+      res.json(commentaires);
+    } catch (error) {
+      console.error('Error fetching likes:', error);
+      res.status(500).json({ error: 'An error occurred while fetching commentaires' });
+    }
+  });
+
+
 module.exports = router;

@@ -80,6 +80,7 @@ exports.loginUser = async (req, res) => {
     res.status(400).json({ error: error.message });
   }
 };
+<<<<<<< HEAD
 
 // signup user
 exports.signupUser = async (req, res) => {
@@ -99,3 +100,5 @@ exports.signupUser = async (req, res) => {
 
 
 
+=======
+>>>>>>> aea8a217ed9d14697ec6f1b6aed657f2341e5c60

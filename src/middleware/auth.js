@@ -11,6 +11,7 @@ const authMiddleware = async (req, res, next) => {
 
     const token = authorization.split(' ')[1]
 
+<<<<<<< HEAD
     try {
         const {_id} = jwt.verify(token, process.env.JWT_SECRET_KEY);
 
@@ -24,3 +25,6 @@ const authMiddleware = async (req, res, next) => {
 }
 
 module.exports = authMiddleware
+=======
+module.exports = authMiddleware;
+>>>>>>> aea8a217ed9d14697ec6f1b6aed657f2341e5c60
