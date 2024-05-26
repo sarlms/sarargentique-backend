@@ -49,3 +49,14 @@ exports.deleteLike = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+// Contrôleur pour récupérer les photos par pelliculeId
+exports.getLikesByPhotoId = async (req, res) => {
+    try {
+        const likes = await Like.find({ photoId: req.params.photoId });
+        console.log('Likes fetched from DB:', likes); // Ajoutez cette ligne
+        res.status(200).json(likes);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};

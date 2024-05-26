@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const likeSCHEMA = new mongoose.Schema({
-  photoId: {type: mongoose.Schema.Types.ObjectId, ref: 'Message', required: true},
+  photoId: {type: mongoose.Schema.Types.ObjectId, ref: 'Photo', required: true},
   userId: {type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true}
 });
 

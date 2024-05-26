@@ -8,8 +8,8 @@ router.post('/create', photoController.createPhoto);
 // Route pour récupérer toutes les photos
 router.get('/', photoController.getAllPhotos);
 
-// Route pour récupérer une photo par son identifiant
-router.get('/:id', photoController.getPhotoById);
+// Route pour récupérer les détails d'une photo par son identifiant
+router.get('/details/:id', photoController.getPhotoDetailsById);
 
 // Route pour mettre à jour une photo par son identifiant
 router.put('/:id', photoController.updatePhoto);
@@ -18,6 +18,6 @@ router.put('/:id', photoController.updatePhoto);
 router.delete('/:id', photoController.deletePhoto);
 
 // Route pour récupérer les photos par pelliculeId
-router.get('/pellicule/:pelliculeId', photoController.getPhotosByPelliculeId);
+router.get('/pellicule/:pelliculeId', photoController.getPhotosByPellicule);
 
 module.exports = router;
